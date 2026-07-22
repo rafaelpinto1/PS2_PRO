@@ -62,7 +62,7 @@ Divido em 5 partes, cada uma com uma versão inicial enxuta e uma lista de coisa
 
 | # | Subsistema | Versão inicial | Depois |
 |---|---|---|---|
-| 1 | Storage & Saves | SSD + OPL configurado, boot via DEV2 do Matrix Infinity; sem memory card, sem drive óptico | Migração de saves antigos; perfis multi-usuário; backup na nuvem; SSD removível/expansível (tipo slot M.2) |
+| 1 | Storage & Saves | SSD via USB-SATA + OPL configurado, boot via modo "mass" do Matrix Infinity; sem memory card, sem drive óptico | Migração de saves antigos; perfis multi-usuário; backup na nuvem; SSD removível/expansível (tipo slot M.2) |
 | 2 | Vídeo HDMI | Tap digital do GS + encoder HDMI, saída fixa em 720p/1080p | HDMI-CEC; captura de tela/clipes; upscaling/filtros (CRT/sharpening) |
 | 3 | Conectividade ESP32 | FTP direto no SSD; pareamento Bluetooth Classic (PS4/PS5/Xbox/8BitDo); tela de status; RGB por jogo | OTA; painel web; app companion; scraping de capas; remap de botões; fone Bluetooth (A2DP); notificação de transferência; bateria do controle na tela |
 | 4 | Alimentação & Confiabilidade | Bateria interna recarregável + circuito de carga/descarga; revisar resfriamento (fan/heatsink) pros componentes novos | Fonte USB-C PD; RTC com bateria própria |
