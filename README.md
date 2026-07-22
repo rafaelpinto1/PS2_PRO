@@ -6,3 +6,5 @@ Design doc: [docs/specs/ps2-pro-design.md](docs/specs/ps2-pro-design.md)
 Fotos/vídeo: [img_videos/](img_videos/)
 
 Esquema elétrico: [docs/schematics/](docs/schematics/)
+
+Firmware/homebrew usado (OPL, wLaunchELF): [firmware/](firmware/)

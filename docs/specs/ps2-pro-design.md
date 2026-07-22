@@ -134,6 +134,7 @@ Como o SSD agora vai direto na porta USB do PS2 (não mais num barramento compar
 
 - `img_videos/`: fotos e vídeo do console desmontado, estado inicial (antes de qualquer mod).
 - `docs/schematics/`: board scan da GH-072-42 (mapa de tensões por cor, valores de componentes). Não é meu, peguei de https://bitbuilt.net/forums/threads/board-scan-ps2-90006-90010.4340/, créditos ao Mister M (Nexus-M). Ver o README daquela pasta pros detalhes de o que dá e o que não dá pra tirar de lá.
+- `firmware/`: wLaunchELF e OPL (Open PS2 Loader) usados no teste de boot via pendrive. Homebrew de terceiros, não escrito por mim, créditos e licença de cada um no README da respectiva subpasta.
 
 ## Ordem de execução
 
