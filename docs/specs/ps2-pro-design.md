@@ -20,23 +20,30 @@ Objetivo, resumindo:
 
 Padrão de vídeo é NTSC-J.
 
-E o achado mais importante até agora: **a placa já tem um modchip Matrix Infinity 1.9 soldado**. Ele tem um modo de boot chamado DEV2 que carrega automaticamente `hdd0:/__boot/BOOT.ELF` direto do HDD/SSD interno, ou seja, resolve sozinho o problema de como entrar no OPL sem memory card e sem disco. Só precisa colocar o BOOT.ELF do OPL em `__boot/` na partição de boot do SSD e configurar o chip pra usar DEV2 como padrão (dá pra fazer pelo menu do chip, TRIANGLE+CIRCLE no boot, ou segurando L1).
+E o achado mais importante até agora: **a placa já tem um modchip Matrix Infinity 1.9 soldado**. Ele tem um modo de boot chamado DEV2 que carrega automaticamente `hdd0:/__boot/BOOT.ELF` direto de um HD/SSD via ATA/IDE de verdade. Só que essa via exige solda no ponto de IDE da placa, e no caso da nossa GH-072-42 esse ponto é um cabo flex (FPC), praticamente inviável de soldar sem risco real de estragar a trilha.
 
-Importante: DEV2 só reconhece HD/SSD via ATA/IDE, não pendrive USB. Pra teste rápido sem precisar instalar o SSD definitivo ainda, o Matrix Infinity tem outro modo, chamado **"mass"**, que funciona com pendrive. Só que em vez de dar boot automático no BOOT.ELF, ele entra no uLaunchELF (um gerenciador de arquivos), de onde dá pra abrir o OPL manualmente a partir do pendrive. Serve como teste preliminar de que o modchip funciona antes de mexer com solda.
+**Decisão: o SSD vai ser conectado via adaptador USB-SATA, aproveitando a porta USB que já existe (sem solda nenhuma)**. Motivo principal: o ponto de solda do IDE fica no cabo flex do leitor óptico, praticamente inviável de soldar sem risco real de estragar a trilha. Isso troca velocidade (USB 1.1 do PS2 é bem mais lento que IDE nativo, ~1-1.3 MB/s reais contra os ~66 MB/s teóricos do IDE) pela viabilidade prática de instalar sem risco de dano à placa. M.2 NVMe foi descartado (precisa de controlador PCIe que o PS2 não tem); rede/Ethernet embutida também (não resolve o boot sozinha e exigiria servidor SMB rodando em outro lugar).
+
+**Plano de teste em andamento:**
+1. Testar primeiro com um pendrive via USB (barato, rápido de testar, não compromete nada).
+2. Se funcionar bem, seguir com SSD via adaptador USB-SATA (ou M.2 SATA + adaptador).
+3. Se o USB 1.1 deixar o carregamento muito lento na prática, o plano B é testar via **MX4SIO** (porta de memory card), que é mais rápido que USB (~2-2.5 MB/s) e também não exige solda.
+
+Como o modo DEV2 do Matrix Infinity só reconhece ATA/IDE, ele **não** dá boot automático de um SSD ligado por USB. A alternativa é o modo **"mass"** do próprio chip, que também funciona com pendrive/USB, só que em vez de bootar direto no BOOT.ELF, ele entra no uLaunchELF (um gerenciador de arquivos). O uLaunchELF tem uma opção de configurar um "Auto launch" apontando pro caminho do OPL, o que pode dar um boot automático (ou quase automático) mesmo sem o DEV2. Isso ainda precisa ser testado na prática (ver checklist).
 
 ## O que ainda tá em aberto
 
-- **Como conectar o SSD**: solda direto nos pontos de IDE (existem nas placas Slim em geral, mas ainda não localizei fisicamente na GH-072-42) ou adaptador USB-SATA interno aproveitando a porta USB que já existe. Só decido depois de achar os pontos de solda.
-- **Esquema de partição do SSD**: o boot via DEV2 precisa de uma partição APA+PFS nativa (padrão Sony) pro `__boot/`. Pro resto do armazenamento (jogos), a dúvida é usar PFS nativo (mais compatível com OPL/HDLoader) ou uma variante chamada APA-Jail, que permite ter uma partição exFAT extra pra facilitar o acesso via PC/FTP sem perder o boot DEV2.
+- **Boot automático via USB**: testar se o modo "mass" do Matrix Infinity + a opção de "Auto launch" do uLaunchELF conseguem dar boot direto no OPL sem precisar navegar manualmente toda vez que ligar o console.
+- **Formato do SSD via USB**: como o acesso passa a ser via USB (modo `mass:`/`usb:` do OPL), não precisa mais de partição APA+PFS como precisaria via DEV2/IDE. O SSD deve poder ser formatado direto em FAT32 ou exFAT, como qualquer pendrive.
 
 ## Ficha técnica
 
 | Campo | Valor |
 |---|---|
 | Base | PS2 Slim SCPH-90006, motherboard GH-072-42 (Hong Kong) |
-| Armazenamento | SSD interno (solda IDE ou USB-SATA, método ainda TBD). 100% dos jogos e saves, sem memory card |
-| Boot | Modchip Matrix Infinity 1.9 (já instalado), modo DEV2, boot direto de `hdd0:/__boot/BOOT.ELF` |
-| Software de boot | OPL com tema customizado inspirado no PS5, carregado via DEV2 |
+| Armazenamento | SSD via adaptador USB-SATA (aproveitando a porta USB existente, sem solda). 100% dos jogos e saves, sem memory card |
+| Boot | Modchip Matrix Infinity 1.9 (já instalado), modo "mass" + auto launch do uLaunchELF (a confirmar na prática) |
+| Software de boot | OPL com tema customizado inspirado no PS5, carregado via USB |
 | Vídeo | HDMI nativo, tap digital do GS (pré-DAC) + encoder HDMI embutido no case |
 | Conectividade | ESP32 clássico (não o S3): WiFi 2.4GHz + Bluetooth Classic + BLE. Classic é obrigatório pro fone Bluetooth (A2DP) e pra parear controles PS4/PS5/Xbox originais (o S3 só tem BLE e não serve) |
 | Entrada | Controles Bluetooth genéricos do mercado (PS4/PS5/Xbox/8BitDo), convertidos de HID pro protocolo da porta de controle do PS2 via ESP32. Sem controle físico próprio, ver comparativo com o PS5 mais abaixo |
@@ -97,22 +104,22 @@ Ainda não tenho o esquema elétrico ponto-a-ponto (isso vai vir conforme eu for
 ```
 [Placa-mãe PS2 Slim]
    ├─(sinal digital GS pré-DAC)──> [Encoder HDMI interno] ──> [Saída HDMI no case]
-   ├─(barramento SATA/USB, TBD)──> [SSD interno] (jogos + saves, sem memory card) <──┐
-   ├─(porta de controle x2)──────> [ESP32: conversor BT Classic→protocolo controle]  │
-   └─(alimentação 3.3V/5V)───────> [ESP32 + periféricos]                            │
-                                                                                      │
-[ESP32] ──I2C/SPI──> [Tela OLED/LCD no topo]                                        │
-        ──RMT/GPIO─> [LEDs endereçáveis RGB]                                        │
-        ──acesso direto ao barramento do SSD (arbitrado com o PS2) ──────────────────┘
+   ├─(porta USB existente)───────> [Adaptador USB-SATA] ──> [SSD] (jogos + saves, sem memory card)
+   ├─(porta de controle x2)──────> [ESP32: conversor BT Classic→protocolo controle]
+   └─(alimentação 3.3V/5V)───────> [ESP32 + periféricos]
+
+[ESP32] ──I2C/SPI──> [Tela OLED/LCD no topo]
+        ──RMT/GPIO─> [LEDs endereçáveis RGB]
         ──WiFi──────> [Servidor FTP próprio, app companion, painel web AP, OTA]
 ```
 
-O ESP32 acessa o SSD direto, sem passar pelo software do PS2/OPL. Então precisa de um jeito de arbitrar quem acessa o SSD e quando (ver riscos abaixo).
+Como o SSD agora vai direto na porta USB do PS2 (não mais num barramento compartilhado tipo IDE), o ESP32 não tem mais acesso físico direto ao mesmo SSD. Isso muda a arquitetura do FTP/transferência de arquivos: precisa decidir se o ESP32 recebe um SSD/armazenamento próprio separado só pra isso, ou se existe algum jeito de compartilhar o mesmo SSD via um switch USB (ver riscos abaixo).
 
 ## Riscos e pendências
 
-- Ainda não achei os pontos de solda do IDE na GH-072-42. Isso decide o método de conexão do SSD.
-- Esquema de partição do SSD (PFS nativo vs APA-Jail com exFAT), ver acima.
+- Boot automático via USB ainda não testado na prática (modo "mass" + auto launch do uLaunchELF), ver seção acima.
+- Velocidade de carregamento via USB 1.1 vai ser bem mais lenta que IDE nativo (~1-1.3 MB/s reais). Aceito como troca pela viabilidade de instalar sem risco à placa.
+- Arquitetura de acesso do ESP32 ao SSD mudou: como o SSD vai na porta USB do PS2 (não num barramento compartilhado), o ESP32 não tem mais acesso direto ao mesmo storage. Precisa decidir entre o ESP32 ter seu próprio armazenamento separado (SD card, por exemplo) só pro FTP/transferência, ou algum esquema de switch USB compartilhando o mesmo SSD entre PS2 e ESP32.
 - Jitter de WiFi/Bluetooth no controle, ver seção do ESP32 acima.
 - Espaço interno do case: o Slim já é apertado, e o SCPH-90006 tem fonte interna ocupando parte do espaço (diferente das revisões com fonte externa). Encaixar encoder HDMI, ESP32, tela, LEDs e bateria dividindo espaço com a fonte já existente vai precisar de um mockup mecânico pra validar.
 - Bateria interna: o PS2 Slim consome uns 25-35W, então pra 1-2h de autonomia precisa de algo como 30-60Wh (vários cells 18650 juntos), um pack grande pro espaço que sobra. Ainda falta o circuito de troca automática bateria/tomada, e preciso medir o consumo real antes de fechar a meta.
@@ -132,16 +139,17 @@ O ESP32 acessa o SSD direto, sem passar pelo software do PS2/OPL. Então precisa
 
 Checklist pra ir acompanhando o que já foi feito/validado. Marcar conforme for avançando.
 
-**Fase 0, validar antes de soldar**
-- [ ] Testar boot DEV2/mass do Matrix Infinity com pendrive ou HD provisório
-- [ ] Achar os pontos de solda do IDE na placa
+**Fase 0, validar antes de mexer**
+- [x] Preparar o pendrive (FAT32, uLaunchELF na raiz, OPL numa pasta própria)
+- [ ] Testar modo "mass" do Matrix Infinity com pendrive: uLaunchELF abre certinho (falta controle de PS2 físico pra fazer esse teste)
+- [ ] Configurar "Auto launch" do uLaunchELF apontando pro OPL e testar se dá boot automático via USB
 - [ ] Confirmar se o sinal digital do GS é acessível
 - [ ] Mapear a fonte interna (rails, espaço, calor)
 
 **Fase 1, Storage & Saves**
-- [ ] Instalar o SSD
-- [ ] Particionar e configurar o OPL
-- [ ] Validar boot completo via DEV2
+- [ ] Conectar o SSD via adaptador USB-SATA
+- [ ] Formatar o SSD (FAT32 ou exFAT) e configurar o OPL
+- [ ] Validar boot automático completo via USB (ou aceitar boot manual se o automático não funcionar)
 
 **Fase 2, Vídeo HDMI**
 - [ ] Prototipar o tap do GS + encoder HDMI em bancada
