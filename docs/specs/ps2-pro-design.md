@@ -156,9 +156,12 @@ Checklist pra ir acompanhando o que já foi feito/validado. Marcar conforme for 
 - [ ] Prototipar o tap do GS + encoder HDMI em bancada
 
 **Fase 3, ESP32**
-- [ ] Prototipar WiFi/BT/FTP/tela/RGB em bancada
-- [ ] Validar jitter de WiFi/BT
-- [ ] Integrar fisicamente na placa
+- [ ] Prototipar pareamento de controle Bluetooth (PS4/PS5/Xbox/8BitDo) em bancada
+- [ ] Prototipar a tela de status (topo do case: rede, temperatura, storage, hora, jogo atual)
+- [ ] Prototipar o RGB reagindo ao jogo
+- [ ] Prototipar WiFi + servidor FTP
+- [ ] Validar jitter de WiFi/BT (controle travando durante tráfego de rede)
+- [ ] Integrar tudo fisicamente na placa
 
 **Fase 4, Alimentação & Confiabilidade**
 - [ ] Medir consumo real com tudo instalado
