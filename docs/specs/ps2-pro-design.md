@@ -147,7 +147,8 @@ Checklist pra ir acompanhando o que já foi feito/validado. Marcar conforme for 
 - [ ] Mapear a fonte interna (rails, espaço, calor)
 
 **Fase 1, Storage & Saves**
-- [ ] Conectar o SSD via adaptador USB-SATA
+- [ ] Confirmar que o teste com pendrive funcionou antes de seguir pra instalação definitiva
+- [ ] Soldar o adaptador USB-SATA direto nas trilhas internas da porta USB (instalação permanente, sem cabo pra fora)
 - [ ] Formatar o SSD (FAT32 ou exFAT) e configurar o OPL
 - [ ] Validar boot automático completo via USB (ou aceitar boot manual se o automático não funcionar)
 
