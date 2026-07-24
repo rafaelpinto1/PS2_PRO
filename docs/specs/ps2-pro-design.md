@@ -31,10 +31,15 @@ E o achado mais importante até agora: **a placa já tem um modchip Matrix Infin
 
 Como o modo DEV2 do Matrix Infinity só reconhece ATA/IDE, ele **não** dá boot automático de um SSD ligado por USB. A alternativa é o modo **"mass"** do próprio chip, que também funciona com pendrive/USB, só que em vez de bootar direto no BOOT.ELF, ele entra no uLaunchELF (um gerenciador de arquivos). O uLaunchELF tem uma opção de configurar um "Auto launch" apontando pro caminho do OPL, o que pode dar um boot automático (ou quase automático) mesmo sem o DEV2. Isso ainda precisa ser testado na prática (ver checklist).
 
+Testando na prática: esse modchip (firmware v1.93, a versão mais alta e a única segura de atualizar) só tem os modos **AUTO, FAST, INFMAN, DEV1, DEV2, DVDV** no menu, sem "mass" nenhum. AUTO só mostra a tela padrão do sistema, não toca no pendrive. FAST é feito pra disco (trava esperando um disco que não existe). Ou seja, esse chip específico não dá boot automático de pendrive/USB de jeito nenhum, nem manual nem automático, porque ele só sabe carregar de memory card (DEV1) ou HD/IDE de verdade (DEV2). Isso ainda tá em aberto, ver riscos.
+
+**Vídeo HDMI: decidido e já funcionando.** Em vez do tap digital do GS (que nunca foi confirmado como acessível), usei uma placa conversora pronta baseada no chip **MS1858E** (o mesmo chip das caixinhas "AV2HDMI" baratas). Ela aceita composto e S-Video (não aceita componente), roda em 3.3V-3.63V, faz upscaling e conversão de entrelaçado pra progressivo, com chave pra escolher saída em 720p ou 1080p. Tapeei o sinal de **S-Video** direto nos pinos do conector AV Multi Out da placa-mãe (pino 5 = Y, pino 7 = C, pino 1/8 = GND), já soldado, isolado com fita 3M, e testado funcionando. Furei o case (ferro de solda) pra rota da saída HDMI. Falta só alimentar essa placa direto da placa-mãe do PS2 (hoje ainda tá em bancada, alimentada por cabo USB externo).
+
 ## O que ainda tá em aberto
 
-- **Boot automático via USB**: testar se o modo "mass" do Matrix Infinity + a opção de "Auto launch" do uLaunchELF conseguem dar boot direto no OPL sem precisar navegar manualmente toda vez que ligar o console.
+- **Boot automático via USB não funciona nesse modchip**: confirmado que não tem modo "mass" nem nada parecido. Pra dar boot automático sem disco, só resta memory card (DEV1) ou resolver o IDE de vez (DEV2). Ver riscos.
 - **Formato do SSD via USB**: como o acesso passa a ser via USB (modo `mass:`/`usb:` do OPL), não precisa mais de partição APA+PFS como precisaria via DEV2/IDE. O SSD deve poder ser formatado direto em FAT32 ou exFAT, como qualquer pendrive.
+- **Alimentar a placa MS1858E direto da placa-mãe do PS2**: hoje ainda tá em bancada com cabo USB externo, falta integrar a alimentação internamente.
 
 ## Ficha técnica
 
@@ -44,7 +49,7 @@ Como o modo DEV2 do Matrix Infinity só reconhece ATA/IDE, ele **não** dá boot
 | Armazenamento | SSD via adaptador USB-SATA (aproveitando a porta USB existente, sem solda). 100% dos jogos e saves, sem memory card |
 | Boot | Modchip Matrix Infinity 1.9 (já instalado), modo "mass" + auto launch do uLaunchELF (a confirmar na prática) |
 | Software de boot | OPL com tema customizado inspirado no PS5, carregado via USB |
-| Vídeo | HDMI nativo, tap digital do GS (pré-DAC) + encoder HDMI embutido no case |
+| Vídeo | HDMI via placa conversora MS1858E (tap de S-Video do AV Multi Out), já instalada e testada. Chave de saída 720p/1080p |
 | Conectividade | ESP32 clássico (não o S3): WiFi 2.4GHz + Bluetooth Classic + BLE. Classic é obrigatório pro fone Bluetooth (A2DP) e pra parear controles PS4/PS5/Xbox originais (o S3 só tem BLE e não serve) |
 | Entrada | Controles Bluetooth genéricos do mercado (PS4/PS5/Xbox/8BitDo), convertidos de HID pro protocolo da porta de controle do PS2 via ESP32. Sem controle físico próprio, ver comparativo com o PS5 mais abaixo |
 | Display auxiliar | Tela OLED/LCD pequena no topo do case: rede, temperatura, storage, hora, capa/título do jogo rodando |
@@ -63,7 +68,7 @@ Divido em 5 partes, cada uma com uma versão inicial enxuta e uma lista de coisa
 | # | Subsistema | Versão inicial | Depois |
 |---|---|---|---|
 | 1 | Storage & Saves | SSD via USB-SATA + OPL configurado, boot via modo "mass" do Matrix Infinity; sem memory card, sem drive óptico | Migração de saves antigos; perfis multi-usuário; backup na nuvem; SSD removível/expansível (tipo slot M.2) |
-| 2 | Vídeo HDMI | Tap digital do GS + encoder HDMI, saída fixa em 720p/1080p | HDMI-CEC; captura de tela/clipes; upscaling/filtros (CRT/sharpening) |
+| 2 | Vídeo HDMI | Placa MS1858E (tap S-Video do AV Multi Out), saída 720p/1080p via chave. Instalado e testado, falta só alimentar direto da placa-mãe | HDMI-CEC; captura de tela/clipes; upscaling/filtros (CRT/sharpening) |
 | 3 | Conectividade ESP32 | FTP direto no SSD; pareamento Bluetooth Classic (PS4/PS5/Xbox/8BitDo); tela de status; RGB por jogo | OTA; painel web; app companion; scraping de capas; remap de botões; fone Bluetooth (A2DP); notificação de transferência; bateria do controle na tela |
 | 4 | Alimentação & Confiabilidade | Bateria interna recarregável + circuito de carga/descarga; revisar resfriamento (fan/heatsink) pros componentes novos | Fonte USB-C PD; RTC com bateria própria |
 | 5 | Tema OPL | Tema visual inspirado no PS5 | Plugins de áudio; RetroAchievements; áudio mono (acessibilidade); gerenciador de armazenamento; "jogados recentemente"; skins extras |
@@ -103,7 +108,7 @@ Ainda não tenho o esquema elétrico ponto-a-ponto (isso vai vir conforme eu for
 
 ```
 [Placa-mãe PS2 Slim]
-   ├─(sinal digital GS pré-DAC)──> [Encoder HDMI interno] ──> [Saída HDMI no case]
+   ├─(S-Video, pinos 5/7/1 do AV Multi Out)──> [Placa MS1858E] ──> [Saída HDMI no case]
    ├─(porta USB existente)───────> [Adaptador USB-SATA] ──> [SSD] (jogos + saves, sem memory card)
    ├─(porta de controle x2)──────> [ESP32: conversor BT Classic→protocolo controle]
    └─(alimentação 3.3V/5V)───────> [ESP32 + periféricos]
@@ -117,7 +122,7 @@ Como o SSD agora vai direto na porta USB do PS2 (não mais num barramento compar
 
 ## Riscos e pendências
 
-- Boot automático via USB ainda não testado na prática (modo "mass" + auto launch do uLaunchELF), ver seção acima.
+- Boot automático sem memory card e sem disco ainda sem solução (mass boot não existe nesse modchip), ver seção acima. Falta decidir entre memory card fixo (DEV1) ou resolver o IDE (DEV2).
 - Velocidade de carregamento via USB 1.1 vai ser bem mais lenta que IDE nativo (~1-1.3 MB/s reais). Aceito como troca pela viabilidade de instalar sem risco à placa.
 - Arquitetura de acesso do ESP32 ao SSD mudou: como o SSD vai na porta USB do PS2 (não num barramento compartilhado), o ESP32 não tem mais acesso direto ao mesmo storage. Precisa decidir entre o ESP32 ter seu próprio armazenamento separado (SD card, por exemplo) só pro FTP/transferência, ou algum esquema de switch USB compartilhando o mesmo SSD entre PS2 e ESP32.
 - Jitter de WiFi/Bluetooth no controle, ver seção do ESP32 acima.
@@ -125,8 +130,8 @@ Como o SSD agora vai direto na porta USB do PS2 (não mais num barramento compar
 - Bateria interna: o PS2 Slim consome uns 25-35W, então pra 1-2h de autonomia precisa de algo como 30-60Wh (vários cells 18650 juntos), um pack grande pro espaço que sobra. Ainda falta o circuito de troca automática bateria/tomada, e preciso medir o consumo real antes de fechar a meta.
 - Resfriamento: o fan/heatsink original foi pensado só pro EE/GS/IOP originais, sem os componentes novos (SSD, ESP32, encoder HDMI, circuito de carga da bateria). Isso esquenta mais o case do que o projeto original, e ainda por cima a bateria de Li-ion vai ficar perto dessas fontes de calor. Precisa validar se dá pra reaproveitar o fan original ou se precisa de algo maior, e pensar no posicionamento da bateria longe do que mais esquenta (GS, encoder, fonte interna).
   - Achado importante lendo o esquema (board scan do Mister M, ver `docs/schematics/`): a placa 900xx usa 7.5V como trilho principal (com um "LDO" próprio pro standby do mechacon), diferente da linha 7900x que usa 8.5V via MOSFET. No próprio tópico onde peguei o scan, o autor tentou alimentar os reguladores mapeados por fonte externa nessa mesma família 900xx e **não deu vídeo, só esquentou** (ele mesmo avisa pra não confiar cegamente nesse caminho). Só que outros usuários confirmaram numa 90001 que **bateria 2S (Li-ion/LiPo, 7.4V nominal, 8.4V cheia) funciona normal**, entrando bem próximo de onde a fonte interna já entrega os 7.5V. É bem diferente de tentar rebaixar pra 5V direto (um usuário queimou o MOSFET tentando isso). Ou seja: o caminho mais seguro pra bateria parece ser 2S entrando onde a fonte interna hoje entrega ~7.5V, deixando a cadeia de reguladores já existente na placa fazer o resto, não tentar alimentar cada trilho manualmente do zero.
-- O tap digital do GS (pré-DAC) ainda não tá confirmado como acessível. Diferente do N64, que expõe um barramento de vídeo digital conhecido, não sei se o GS do PS2 expõe esse sinal em pinos externos antes de converter pra analógico. Essa é a base de todo o Subsistema 2 e precisa ser a primeira coisa a validar com a placa em mãos. Se não der, a alternativa é converter a partir da saída AV multi-out analógica.
-- Upscaling/filtros de vídeo (CRT/sharpening) não rolam com um encoder HDMI simples, precisaria de um scaler tipo FPGA (OSSC/RetroTINK), bem mais caro e maior que um encoder básico. Isso entra no orçamento de espaço/custo do Subsistema 2.
+- Vídeo resolvido via tap analógico (S-Video + MS1858E) em vez do tap digital do GS, então a qualidade fica limitada ao que dá pra tirar de S-Video, não é um upscale de sinal digital puro. Aceito como troca pela simplicidade e por já estar funcionando.
+- Upscaling/filtros de vídeo mais avançados (CRT/sharpening) não rolam com esse encoder simples, precisaria de um scaler tipo FPGA (OSSC/RetroTINK), bem mais caro e maior. Isso fica pra depois da v1, se quiser melhorar.
 - Falta definir o canal de dados PS2/OPL → ESP32 (pra ele saber qual jogo tá rodando, mostrar na tela, mudar o RGB, notificar transferência). Como o OPL é open-source, dá pra patchear ele pra emitir isso, é desenvolvimento de firmware de verdade, não só "tema visual".
 - Arbitragem de acesso ao SSD entre ESP32 e PS2: como o ESP32 acessa direto pro FTP, precisa definir quando cada um pode acessar (ex: FTP só ativo com o PS2 desligado) pra não corromper dado.
 
@@ -142,9 +147,8 @@ Checklist pra ir acompanhando o que já foi feito/validado. Marcar conforme for 
 
 **Fase 0, validar antes de mexer**
 - [x] Preparar o pendrive (FAT32, uLaunchELF na raiz, OPL numa pasta própria)
-- [ ] Testar modo "mass" do Matrix Infinity com pendrive: uLaunchELF abre certinho (falta controle de PS2 físico pra fazer esse teste)
-- [ ] Configurar "Auto launch" do uLaunchELF apontando pro OPL e testar se dá boot automático via USB
-- [ ] Confirmar se o sinal digital do GS é acessível
+- [x] Testar modo "mass" do Matrix Infinity com pendrive: confirmado que esse modchip não tem esse modo
+- [x] ~~Confirmar se o sinal digital do GS é acessível~~ (não precisa mais, vídeo resolvido via S-Video + MS1858E)
 - [ ] Mapear a fonte interna (rails, espaço, calor)
 
 **Fase 1, Storage & Saves**
@@ -154,7 +158,11 @@ Checklist pra ir acompanhando o que já foi feito/validado. Marcar conforme for 
 - [ ] Validar boot automático completo via USB (ou aceitar boot manual se o automático não funcionar)
 
 **Fase 2, Vídeo HDMI**
-- [ ] Prototipar o tap do GS + encoder HDMI em bancada
+- [x] Soldar o tap de S-Video (AV Multi Out) na placa MS1858E
+- [x] Isolar a solda com fita 3M
+- [x] Furar o case pra rota da saída HDMI
+- [x] Testar funcionando (com chave 720p/1080p)
+- [ ] Alimentar a placa MS1858E direto da placa-mãe do PS2 (hoje ainda via USB externo em bancada)
 
 **Fase 3, ESP32**
 - [ ] Prototipar pareamento de controle Bluetooth (PS4/PS5/Xbox/8BitDo) em bancada
